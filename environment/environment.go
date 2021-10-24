@@ -5,25 +5,16 @@ import (
 	"strings"
 )
 
-type Environment struct {
-	Variables map[string]string
-}
+type Environment map[string]interface{}
 
-type IEnvironment interface {
-	Get(key string) interface{}
-	Setup()
-}
-
-func (env *Environment) Get(key string) string {
-	return env.Variables[key]
-}
-
-func GetEnvironment() *Environment {
+func GetEnvironment(userSettings map[string]interface{}) *Environment {
 	env := Environment{}
-	env.Variables = make(map[string]string)
 	for _, e := range os.Environ() {
 		keyValue := strings.SplitN(e, "=", 2)
-		env.Variables[keyValue[0]] = keyValue[1]
+		env[keyValue[0]] = keyValue[1]
+	}
+	for key, value := range userSettings {
+		env[key] = value
 	}
 	return &env
 }

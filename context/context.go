@@ -1,26 +1,28 @@
 package context
 
 import (
-	"github.com/Kolynes/PotGo/controller"
-	"github.com/Kolynes/PotGo/middleware"
+	"github.com/Kolynes/PotGo/environment"
+	"github.com/Kolynes/PotGo/types"
 )
 
 type Context struct {
-	routers    []*controller.Router
-	Middleware []middleware.IMiddleware
+	controllerContext *ControllerContext
+	middlewareContext *MiddlewareContext
+	Env               *environment.Environment
 }
 
-func NewContext(routers []*controller.Router, middlewareInterfaces []middleware.IMiddleware) *Context {
-	context := Context{
-		routers:    routers,
-		Middleware: middlewareInterfaces,
-	}
+func (context *Context) GetControllerContext() types.IControllerContext {
+	return context.controllerContext
+}
 
-	for index := 0; index < len(context.Middleware)-1; index++ {
-		context.Middleware[index].SetNext(context.Middleware[index+1])
-	}
+func (context *Context) GetMiddlewareContext() types.IMiddlewareContext {
+	return context.middlewareContext
+}
 
-	lastIndex := len(context.Middleware) - 1
-	context.Middleware[lastIndex].SetNext(middleware.NewCommonMiddleware())
-	return &context
+func NewContext(env *environment.Environment) *Context {
+	context := new(Context)
+	context.controllerContext = NewControllerContext(context)
+	context.middlewareContext = NewMiddlewareContext(context.controllerContext, context)
+	context.Env = env
+	return context
 }

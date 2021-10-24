@@ -4,31 +4,23 @@ import (
 	"net/http"
 
 	"github.com/Kolynes/PotGo/response"
+	"github.com/Kolynes/PotGo/types"
 )
 
 type Middleware struct {
-	next           IMiddleware
-	HandleRequest  func(*http.Request)
-	HandleResponse func(*response.Response)
+	Next    types.IMiddleware
+	Context types.IContext
 }
 
-type IMiddleware interface {
-	Handle(*http.Request) (*response.Response, error)
-	SetNext(IMiddleware)
-	GetNext() IMiddleware
+func (middleware *Middleware) SetNext(next types.IMiddleware) {
+	middleware.Next = next
 }
 
-func (middleware *Middleware) SetNext(next IMiddleware) {
-	middleware.next = next
+func (middleware *Middleware) Handle(request *http.Request) *response.Response {
+	return new(response.Response)
 }
 
-func (middleware *Middleware) GetNext() IMiddleware {
-	return middleware.next
-}
-
-func (middleware *Middleware) Handle(request *http.Request) (*response.Response, error) {
-	middleware.HandleRequest(request)
-	response, err := middleware.next.Handle(request)
-	middleware.HandleResponse(response)
-	return response, err
+func (middleware *Middleware) SetContext(context types.IContext) {
+	middleware.Context = context
+	middleware.Context.GetMiddlewareContext().RegisterMiddleware(middleware)
 }

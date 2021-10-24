@@ -1,11 +1,13 @@
 package environment
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestEnvironment(t *testing.T) {
 	t.Log("testing environment")
-	env := GetEnvironment()
-	for key, value := range env.Variables {
+	env := GetEnvironment(map[string]interface{}{})
+	for key, value := range *env {
 		t.Log(key, value)
 	}
 }

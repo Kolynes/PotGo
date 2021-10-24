@@ -8,15 +8,7 @@ import (
 )
 
 type WebSocketController struct {
-	Controller
 	connection *websocket.Conn
-}
-
-type IWebsocketController interface {
-	Upgrade(writer http.ResponseWriter, request *http.Request) (bool, error)
-	reader()
-	onMessage()
-	onClose()
 }
 
 func (controller *WebSocketController) Upgrade(writer http.ResponseWriter, request *http.Request) (bool, error) {

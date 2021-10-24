@@ -8,41 +8,40 @@ import (
 )
 
 type Server struct {
-	Host     string
-	Port     int
-	CertFile string
-	KeyFile  string
-	server   *http.Server
-	Context  *context.Context
+	host         string
+	port         int
+	CertFile     string
+	KeyFile      string
+	baseInstance *http.Server
+	context      *context.Context
 }
 
-type IServer interface {
-	http.Handler
-	Initiate()
-}
-
-func (server *Server) Initiate(context *context.Context) {
-	server.Context = context
-	server.server = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", server.Host, server.Port),
+func (server *Server) Initiate() {
+	server.baseInstance = &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", server.host, server.port),
 		Handler: server,
 	}
 	print("Server running...")
 	if server.CertFile != "" && server.KeyFile != "" {
-		server.server.ListenAndServeTLS(server.CertFile, server.KeyFile)
+		server.baseInstance.ListenAndServeTLS(server.CertFile, server.KeyFile)
 	} else {
-		server.server.ListenAndServe()
+		server.baseInstance.ListenAndServe()
 	}
 }
 
 func (server *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	response, err := server.Context.Middleware[0].Handle(request)
-	if err != nil {
-		writer.WriteHeader(500)
-		writer.Write([]byte(err.Error()))
-	} else {
-		writer.WriteHeader(response.Status)
-		response.Headers.Write(writer)
-		writer.Write(response.Body)
+	response := server.context.GetMiddlewareContext().Handle(request)
+	writer.WriteHeader(response.Status)
+	response.Headers.Write(writer)
+	writer.Write(response.Body)
+}
+
+func NewServer(context *context.Context) *Server {
+	return &Server{
+		host:     (*context.Env)["HOST"].(string),
+		port:     (*context.Env)["PORT"].(int),
+		CertFile: (*context.Env)["CERT_FILE"].(string),
+		KeyFile:  (*context.Env)["KEY_FILE"].(string),
+		context:  context,
 	}
 }
